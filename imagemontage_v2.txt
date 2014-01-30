@@ -401,7 +401,7 @@ function countFiles(dir) {
 	for (i=0; i<list.length; i++) {
 		if (input_flag == 1 && endsWith(list[i], "/")){
 			countFiles(""+dir+list[i]);
-		}else if(endsWith(list[i], ".jpg") || endsWith(list[i],".png") {
+		}else if(endsWith(list[i], ".jpg") || endsWith(list[i],".png")) {
 			count++;
 		}
 	}
