@@ -592,7 +592,7 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 						
 							path = dir+list[j];
 
-							processFile1(path, path, top_cat_list[j],top_cat_list[j]);
+							processFile1(path, path, top_cat_list[j],temptopcat);
 						}else{
 							print(dir+list[j] + " File not found.");
 						}
@@ -711,7 +711,6 @@ function processFile1(path,listi,currtopcat, oldtopcat){
 	
 	//calculate text offset
 	top_cat_text_offset = height_row*1.05;
-
 	
 	if(processcount<1){
 		
