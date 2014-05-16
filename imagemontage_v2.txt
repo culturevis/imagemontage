@@ -186,6 +186,7 @@ if(input_flag == 0 || input_flag == 1){
 	input_file = File.openAsString("");
 	dir = getDirectory("current");
 	list = split(input_file, "\n");
+
 	top_cat_list=split(input_file, "\n");
 	sec_cat_list=split(input_file, "\n");
 	third_cat_list=split(input_file, "\n");
@@ -243,21 +244,22 @@ if(input_flag == 0 || input_flag == 1){
 			
 			column_choice = Dialog.getChoice();
 			
+			print("column_choice: " + column_choice);
+
 			for(i=0; i<labels.length; i++){
 				
 				if(labels[i] == column_choice){
 					input_data_column = i;
 				}
-												
-				i = 999;
+		
 			}
-			
-			print("column_choice: " + column_choice);
 			
 			for (i=1; i<list.length; i++) {
 				list[i]=replace(list[i],'"','');
+				
 				columns = split(list[i],"\t");
 				list[i-1] = columns[input_data_column];
+				//print(list[i-1]);
 				if (endsWith(list[i-1], ".jpg") || endsWith(list[i-1],".png")) {
 					count++;
 				}
@@ -447,7 +449,7 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 
 				if(j<1){
 					if(cat_list_flag == 0){
-						if(File.exists(list[j])){
+						if(File.exists(list[j]) && File.length(list[j]) > 500){
 							processFile(list[j],list[j]);
 						}else{
 							print(list[j] + " File not found.");
@@ -465,7 +467,7 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 						
 					}
 					else if(cat_list_flag == 2){
-						if(File.exists(list[j])){
+						if(File.exists(list[j]) && File.length(list[j]) > 500){
 							processFile2(list[j],list[j], top_cat_list[j],top_cat_list[j], sec_cat_list[j],sec_cat_list[j]);							
 						}else{
 							print(list[j] + " File not found.");
@@ -476,7 +478,7 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 
 					}
 					else if(cat_list_flag == 3){
-						if(File.exists(list[j])){
+						if(File.exists(list[j]) && File.length(list[j]) > 500){
 							processFile3(list[j],list[j], top_cat_list[j],top_cat_list[j], sec_cat_list[j],sec_cat_list[j],third_cat_list[j],third_cat_list[j]);
 						}else{
 							print(dir+list[j] + " File not found.");
@@ -487,8 +489,8 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 						tempthirdcat = third_cat_list[j];
 					}	
 				}else{
-					if(cat_list_flag == 0){
-						if(File.exists(list[j])){
+					if(cat_list_flag == 0 ){
+						if(File.exists(list[j]) && File.length(list[j]) > 500){
 							processFile(list[j],list[j]);
 						}
 					}
@@ -504,7 +506,7 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 
 					}
 					else if(cat_list_flag == 2){
-						if(File.exists(list[j])){
+						if(File.exists(list[j]) && File.length(list[j]) > 500){
 							processFile2(list[j],list[j], top_cat_list[j],temptopcat,sec_cat_list[j],tempseccat);
 						}else{
 							print(list[j] + " File not found.");
@@ -515,7 +517,7 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 
 					}
 					else if(cat_list_flag == 3){
-						if(File.exists(list[j])){
+						if(File.exists(list[j]) && File.length(list[j]) > 500){
 							processFile3(list[j],list[j], top_cat_list[j],temptopcat,sec_cat_list[j],tempseccat,third_cat_list[j],tempthirdcat);
 						}else{
 							print(list[j] + " File not found.");
@@ -532,14 +534,14 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 
 				if(j<1){
 					if(cat_list_flag == 0){
-						if(File.exists(dir+list[j])){
+						if(File.exists(dir+list[j]) && File.length(dir+list[j]) > 500){
 							processFile(dir+list[j],dir+list[j]);
 						}else{
 							print(dir+list[j] + " File not found.");
 						}
 					}
 					else if(cat_list_flag == 1){
-						if(File.exists(dir+list[j])){
+						if(File.exists(dir+list[j]) && File.length(dir+list[j]) > 500){
 
 							path = dir+list[j];
 
@@ -555,7 +557,7 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 					
 						path = dir+list[j];
 						
-						if(File.exists(path)){
+						if(File.exists(path) && File.length(path) > 500){
 							processFile2(path,path, top_cat_list[j],top_cat_list[j], sec_cat_list[j],sec_cat_list[j]);							
 						}else{
 							print(path + " File not found.");
@@ -569,7 +571,7 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 						
 						path = dir+list[j];
 							
-						if(File.exists(path)){
+						if(File.exists(path) && File.length(path) > 500){
 							processFile3(path,path, top_cat_list[j],top_cat_list[j], sec_cat_list[j],sec_cat_list[j],third_cat_list[j],third_cat_list[j]);
 						}else{
 							print(path + " File not found.");
@@ -583,16 +585,16 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 				} else{
 					if(cat_list_flag == 0){
 					
-						if(File.exists(dir+list[j])){
+						if(File.exists(dir+list[j]) && File.length(dir+list[j]) > 500){
 							processFile(dir+list[j],dir+list[j]);
 						}
 					}
 					else if(cat_list_flag == 1){
-						if(File.exists(dir+list[j])){
+						if(File.exists(dir+list[j]) && File.length(dir+list[j]) > 500){
 						
 							path = dir+list[j];
 
-							processFile1(path, path, top_cat_list[j],temptopcat);
+							processFile1(path, path, top_cat_list[j],top_cat_list[j]);
 						}else{
 							print(dir+list[j] + " File not found.");
 						}
@@ -603,7 +605,7 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 					else if(cat_list_flag == 2){
 						path = dir+list[j];
 						
-						if(File.exists(path)){
+						if(File.exists(path) && && File.length(path) > 500){
 							processFile2(path,path, top_cat_list[j],temptopcat,sec_cat_list[j],tempseccat);
 						}else{
 							print(path + " File not found.");
@@ -618,7 +620,7 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 
 						path = dir+list[j];
 						
-						if(File.exists(path)){
+						if(File.exists(path) &&  && File.length(path) > 500){
 							processFile3(path,path, top_cat_list[j],temptopcat,sec_cat_list[j],tempseccat,third_cat_list[j],tempthirdcat);
 						}else{
 							print(path + " File not found.");
@@ -711,6 +713,7 @@ function processFile1(path,listi,currtopcat, oldtopcat){
 	
 	//calculate text offset
 	top_cat_text_offset = height_row*1.05;
+
 	
 	if(processcount<1){
 		
