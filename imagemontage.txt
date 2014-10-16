@@ -1,0 +1,288 @@
+// Image Montage
+// December 2, 2011 - August 10, 2014
+// Lev Manovich, Jay Chow and Matias Giachino / softwarestudies.com
+
+// this version:
+// 1) user defines width and height of the montage
+// 2) scales images vertically to the same size defined by the user - n_width (like in TiffViewer)
+// 3) uses the full width of every image (after scaling), aligning them next to each other
+
+// input; either a folder full of images or a data file containing rows of filenames or filepaths
+// for the latter two options, the order of images in the file determines ther position in the montage (left to right, top to bottom)
+
+
+// if 1, opens gui to edit options in
+use_gui = 1;
+
+// if 0, takes files from a folder
+// if 1, takes files from a folder and its subfolders
+// if 1, takes files from a data file
+// if 2, takes files from a data file as full filepaths
+input_flag = 0;
+input_list = newArray("Folder", "Folder and Subfolders", "Data File", "Data File as Filepaths");
+
+// if 0, make 8-bit grey scale montage
+// if 1, make RGB montage
+montage_RGB = 0;
+montage_RGB_list = newArray("Grayscale","RGB");
+
+// sets the width of the montage canvas
+montage_width = 2000;
+
+// sets the height of the montage canvas
+montage_height = 1000;
+
+// the height to resize each image to
+height_row = 70;
+
+// sets the horizontal space between the images - in pixels
+h_interval = 0;
+
+// sets the vertical space between the images - in pixels
+v_interval = 0;
+
+// if 1, saves each frame of the montage process into a user-specified directory
+save_files_flag = 0;
+
+// the column from which to load the filename/filepath in a data file
+input_data_column = 0;
+
+// Open the GUI if option is active
+if(use_gui == 1){
+	Dialog.create("Image Montage");
+	Dialog.setInsets(0,0,0);
+	Dialog.addMessage("Create a montage of images.\Image sizes can vary.");
+	Dialog.addMessage(" ");
+	Dialog.setInsets(0,0,0);
+	Dialog.addChoice("Image Source  ", input_list, input_list[input_flag]);
+	Dialog.addMessage(" ");
+	Dialog.setInsets(0,0,0);
+	Dialog.addMessage("Canvas");
+	Dialog.setInsets(0,0,0);
+	Dialog.addChoice("Color Mode",montage_RGB_list,montage_RGB_list[montage_RGB]);
+	Dialog.addNumber("Set Width   ",montage_width,0,5,"px");
+	Dialog.addNumber("Set Height  ",montage_height,0,5,"px");
+	Dialog.addMessage(" ");
+	Dialog.setInsets(0,0,0);
+	Dialog.addMessage("Images");
+	Dialog.addNumber("Row Height",height_row,0,5,"px");
+	Dialog.addNumber("X Spacing   ",h_interval,0,5,"px");
+	Dialog.addNumber("Y Spacing   ",v_interval,0,5,"px");
+	Dialog.addMessage(" ");
+	Dialog.setInsets(0,0,0);
+	Dialog.addMessage("Animation");
+	Dialog.setInsets(0,20,0);
+	Dialog.addCheckbox("Save Images for Animation", save_files_flag);
+	Dialog.show();
+	// Fetch choices
+	input_flag_choice = Dialog.getChoice();
+	for(i=0; i<input_list.length; i++){
+		if(input_list[i] == input_flag_choice){
+			input_flag = i;
+			i = 999;
+		}
+	}
+	montage_RGB_choice = Dialog.getChoice();
+	for(i=0; i<montage_RGB_list.length; i++){
+		if(montage_RGB_list[i] == montage_RGB_choice){
+			montage_RGB = i;
+			i = 999;
+		}
+	}
+	montage_width = Dialog.getNumber();
+	montage_height = Dialog.getNumber();
+	height_row = Dialog.getNumber();
+	h_interval = Dialog.getNumber();
+	v_interval = Dialog.getNumber();
+	save_files_flag = Dialog.getCheckbox() & 1;
+}
+
+setBatchMode(false);
+
+
+scaled_height = height_row;
+var count = 0;
+var path = "";
+if(input_flag != 3){
+	dir = getDirectory("Choose source directory - images");
+}
+if(save_files_flag == 1){
+	dir_anim = getDirectory("Directory to save files for animation"); 
+}
+if(input_flag == 0 || input_flag == 1){
+	list = getFileList(dir);
+	countFiles(dir);
+}else if(input_flag == 2 || input_flag == 3){
+	input_file = File.openAsString("");
+	list = split(input_file, "\n");
+	labels=split(list[0],"\t");
+	for(i=0;i<labels.length;i++){
+		labels[i] = labels[i] + " (Column"+i+")";
+	}
+	if(use_gui == 1){
+		Dialog.create("Data File");
+		Dialog.setInsets(0,0,0);
+		if(input_flag == 2){
+			Dialog.addMessage  ("Choose the column that contains filenames:");
+		}else if(input_flag == 3){
+			Dialog.addMessage  ("Choose the column that contains filepaths:");
+		}
+		Dialog.addMessage(" ");
+		Dialog.setInsets(0,0,0);
+		if(input_flag == 2){
+			Dialog.addChoice("Image Filenames",labels,labels[input_data_column]);
+		}else if(input_flag == 3){
+			Dialog.addChoice("Image Filepaths",labels,labels[input_data_column]);
+		}
+		Dialog.show();
+		column_choice = Dialog.getChoice();
+		for(i=0; i<labels.length; i++){
+			if(labels[i] == column_choice){
+				input_data_column = i;
+				i = 999;
+			}
+		}
+	}
+	for (i=1; i<list.length; i++) {
+		columns = split(list[i],"\t");
+		list[i-1] = columns[input_data_column];
+		if (endsWith(list[i-1], ".jpg")) {
+			count++;
+		}
+	}
+	if(input_flag == 2){
+		path = dir+list[1];
+	}else if(input_flag == 3){
+		path = list[1];
+	}
+}
+
+// For input_flag 0 and 1
+function countFiles(dir) {
+	list = getFileList(dir);
+	for (i=0; i<list.length; i++) {
+		if (input_flag == 1 && endsWith(list[i], "/")){
+			countFiles(""+dir+list[i]);
+		}else if(endsWith(list[i], ".jpg")) {
+			count++;
+		}
+	}
+}
+
+
+print("Montage width = " +  montage_width);
+print("Montage height = " + montage_height);
+print("Number of images = " + count);
+
+if (montage_RGB == 1){
+	newImage("montage", "RGB white", montage_width, montage_height, 1);
+}else{
+	newImage("montage", "8-bit white", montage_width, montage_height, 1);
+}
+id_plot=getImageID;
+
+
+var img_width = 0;
+var img_height =  0;
+var start_x = 0;
+var start_y = 0;
+var row = 0;
+var total_x_width = 0;
+var n_width=0;
+var curImg = 0;
+
+setBatchMode(true);
+
+// Begin parsing files
+if( input_flag == 0 || input_flag == 2 || input_flag == 3){
+	for(j=0; j<list.length; j++){
+		if(endsWith(list[j],".jpg")){
+			if(input_flag == 3){
+				if(File.exists(list[j])){ 	
+					processFile(list[j],list[j]);
+				} else {
+					print(list[j] + " not found!");
+				}
+			} else {
+				if(File.exists(""+dir+list[j])){
+					processFile(""+dir+list[j],list[j]);
+				}else{
+					print ( ""+dir+list[j] + " not found!");
+				}
+			}
+		}
+	}
+}else if(input_flag == 1){
+	processRecursiveFiles(dir);
+}
+
+function processRecursiveFiles(dir){
+	list = getFileList(dir);
+	for (i=0; i<list.length; i++) {
+		if (endsWith(list[i], "/")){
+			processRecursiveFiles(""+dir+list[i]);
+		}else if (endsWith(list[i], ".jpg")) {
+			if(File.exists(""+dir+list[i])){
+				processFile(""+dir+list[i], list[i]);
+			} else {
+				print(""+dir+list[i] + "  not found!");
+			}
+		}
+	}
+}
+
+function processFile(path,listi){
+	
+	// Check for row overflow, start new row if needed
+	if ((total_x_width + n_width) > montage_width) {
+		// increment row
+		row = row + 1;
+		// reset column
+		start_x =  0;
+		// reset total row width
+		total_x_width = 0;
+	}
+	
+	open(path);
+	id=getImageID;
+
+	img_width = getWidth;
+	img_height = getHeight;
+	n_width = round((img_width * scaled_height)/img_height);
+
+	run("Size...", "width=" + n_width + " height=" + scaled_height + " average interpolation=Bicubic");
+
+	// get image width and height after it was scaled
+	n_width = getWidth;
+	n_height = getHeight;
+
+	start_x = total_x_width;
+	start_y = row * (height_row + v_interval) + v_interval;
+
+	run("Select All");
+	run("Copy");
+	selectImage(id_plot);
+	makeRectangle(start_x, start_y, n_width, n_height);
+	run("Paste");
+	selectImage(id);
+	close();
+
+	// update display
+	updateDisplay();
+
+	total_x_width = total_x_width + n_width + h_interval ;
+
+	if (save_files_flag == 1) {
+		selectImage(id_plot);
+		path_files = dir_anim + "frame_" + curImg;
+		saveAs("PNG", path_files);
+
+		print("image " + curImg + " saved");
+	}
+
+	curImg++;
+	showProgress(curImg, count);
+}
+
+run("Select None");
+setBatchMode(false);
