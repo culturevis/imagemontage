@@ -16,8 +16,8 @@ use_gui = 1;
 
 // if 0, takes files from a folder
 // if 1, takes files from a folder and its subfolders
-// if 1, takes files from a data file
-// if 2, takes files from a data file as full filepaths
+// if 2, takes files from a data file
+// if 3, takes files from a data file as full filepaths
 input_flag = 0;
 input_list = newArray("Folder", "Folder and Subfolders", "Data File", "Data File as Filepaths");
 
@@ -198,14 +198,18 @@ if( input_flag == 0 || input_flag == 2 || input_flag == 3){
 	for(j=0; j<list.length; j++){
 		if(endsWith(list[j],".jpg")){
 			if(input_flag == 3){
-				if(File.exists(list[j])){ 	
-					processFile(list[j],list[j]);
+				if(File.exists(list[j])){
+					results = processFile(list[j],list[j]);			
+					total_x_width = results[0];
+					row = results[1];
 				} else {
 					print(list[j] + " not found!");
 				}
 			} else {
 				if(File.exists(""+dir+list[j])){
-					processFile(""+dir+list[j],list[j]);
+					results = processFile(""+dir+list[j],list[j]);
+					total_x_width = results[0];
+					row = results[1];
 				}else{
 					print ( ""+dir+list[j] + " not found!");
 				}
@@ -223,7 +227,9 @@ function processRecursiveFiles(dir){
 			processRecursiveFiles(""+dir+list[i]);
 		}else if (endsWith(list[i], ".jpg")) {
 			if(File.exists(""+dir+list[i])){
-				processFile(""+dir+list[i], list[i]);
+				results = processFile(""+dir+list[i],list[i]);
+				total_x_width = results[0];
+				row = results[1];
 			} else {
 				print(""+dir+list[i] + "  not found!");
 			}
@@ -232,17 +238,6 @@ function processRecursiveFiles(dir){
 }
 
 function processFile(path,listi){
-	
-	// Check for row overflow, start new row if needed
-	if ((total_x_width + n_width) > montage_width) {
-		// increment row
-		row = row + 1;
-		// reset column
-		start_x =  0;
-		// reset total row width
-		total_x_width = 0;
-	}
-	
 	open(path);
 	id=getImageID;
 
@@ -256,9 +251,20 @@ function processFile(path,listi){
 	n_width = getWidth;
 	n_height = getHeight;
 
+	// Check for row overflow, start new row if needed
+	if ((total_x_width + n_width) > montage_width) {
+		// increment row
+		temp_r = row + 1;
+		row = temp_r;
+		// reset column
+		start_x =  0;
+		// reset total row width
+		total_x_width = 0;
+	}
+
 	start_x = total_x_width;
 	start_y = row * (height_row + v_interval) + v_interval;
-
+	
 	run("Select All");
 	run("Copy");
 	selectImage(id_plot);
@@ -270,8 +276,6 @@ function processFile(path,listi){
 	// update display
 	updateDisplay();
 
-	total_x_width = total_x_width + n_width + h_interval ;
-
 	if (save_files_flag == 1) {
 		selectImage(id_plot);
 		path_files = dir_anim + "frame_" + curImg;
@@ -282,6 +286,12 @@ function processFile(path,listi){
 
 	curImg++;
 	showProgress(curImg, count);
+
+	temp_total_x_w = total_x_width + n_width + h_interval;
+	total_x_width = temp_total_x_w;
+	
+	result = newArray(total_x_width,row);
+	return result;
 }
 
 run("Select None");
